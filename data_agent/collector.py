@@ -52,8 +52,35 @@ class UniversalCollector:
             data_kind="model-estimated",
         )
 
+    def fetch_hourly(self, location: LocationInfo, forecast_days: int = 3) -> HourlyForecast:
+        """Fetch multi-day hourly forecast series for any global location."""
+        params = {
+            "latitude": location.latitude,
+            "longitude": location.longitude,
+            "elevation": location.elevation_m,
+            "hourly": "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,surface_pressure",
+            "forecast_days": min(max(1, forecast_days), 16),
+            "timezone": location.timezone or "auto",
+        }
+        url = f"{FORECAST_API_URL}?{urlencode(params)}"
+        payload = self._request_json(url)
+
+        hourly = payload.get("hourly", {})
+        return HourlyForecast(
+            location=location,
+            times=hourly.get("time", []),
+            temperatures=[float(x or 0.0) for x in hourly.get("temperature_2m", [])],
+            humidities=[float(x or 0.0) for x in hourly.get("relative_humidity_2m", [])],
+            precipitations=[float(x or 0.0) for x in hourly.get("precipitation", [])],
+            wind_speeds=[float(x or 0.0) for x in hourly.get("wind_speed_10m", [])],
+            pressures=[float(x or 0.0) for x in hourly.get("surface_pressure", [])],
+        )
+
 
 _default_collector = UniversalCollector()
 
 def get_current_weather(location: LocationInfo) -> CurrentWeather:
     return _default_collector.fetch_current(location)
+
+def get_hourly_forecast(location: LocationInfo, forecast_days: int = 3) -> HourlyForecast:
+    return _default_collector.fetch_hourly(location, forecast_days=forecast_days)

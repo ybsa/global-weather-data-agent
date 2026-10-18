@@ -1,31 +1,80 @@
-# Global Weather Data Agent
+# Universal Global Weather Data Agent
 
-Project 1 collects provenance-labelled weather data worldwide, stores collection runs in SQLite, and exports historical series for downstream models. The default `config/locations.csv` is the Nepal configuration used by the connected Nepal projects. Use `config/world_locations.example.csv` to see a starter configuration spanning several countries.
+Free, open-source global weather scraping, dynamic geocoding, and machine-learning dataset export engine.
+Works for any city, village, mountain, or landmark worldwide with **zero API keys required**.
 
-## Setup
+Powered by Open-Meteo's open atmospheric models and global elevation APIs.
 
-```powershell
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
+---
+
+## ⚡ Quick Start
+
+### 1. Installation
+
+```bash
+git clone https://github.com/ybsa/global-weather-data-agent.git
+cd global-weather-data-agent
 pip install -e .
-weather-agent --database data/weather.sqlite3 collect --locations config/world_locations.example.csv
-weather-agent live "London, GB"
-weather-agent coverage
 ```
 
-On macOS or Linux, activate the virtual environment with `source .venv/bin/activate` instead. The commands work from the repository root.
+### 2. Search Any Location Globally
 
-## Configure locations
+Resolves names to exact latitude, longitude, elevation, and time zone:
 
-Create a CSV with these columns: `location_id,name,province,district,latitude,longitude,elevation_m,country_code`. Use decimal WGS84 coordinates, a unique `location_id`, and the two-letter ISO country code. `province` and `district` can hold the first and second administrative-area names for the location. Then collect it with `weather-agent collect --locations path/to/your_locations.csv`.
+```bash
+data-agent search "Tokyo"
+data-agent search "Namche Bazaar" --country NP
+data-agent search "Zurich"
+```
 
-You can look up a place directly without adding it to a CSV: `weather-agent live "Tokyo, JP"`. When a place name exists in several countries, include the country or region (for example, `Springfield, US`); the agent shows matches when it cannot safely choose. Use country codes to distinguish saved locations with the same name.
+### 3. Fetch Real-Time Weather
 
-The weather API uses each location's local time zone automatically. Current conditions from Open-Meteo are model estimates; hourly values are forecasts, not direct station observations. Follow the local meteorological service for official warnings.
+```bash
+data-agent live "New York"
+data-agent live "London" --country GB
+data-agent live "Kyoto"
+```
 
-The SQLite database, logs, exports, and secrets are runtime files and are excluded from Git. To export historical data, use `timesfm-export --locations config/world_locations.example.csv --output exports/weather_timeseries.csv`. Give an export to another project as a release asset or through object storage; do not rely on a sibling-folder path.
+### 4. Fetch Multi-Day Hourly Forecast
+
+```bash
+data-agent forecast "Paris" --days 3
+```
+
+### 5. Export Historical Datasets for Machine Learning (TimesFM)
+
+Export multi-location hourly time series directly into a formatted CSV ready for time-series foundation models:
+
+```bash
+data-agent export "Tokyo" "London" "New York" --start 2023-01-01 --end 2023-12-31 --output datasets/global_weather.csv
+```
+
+---
+
+## 🐍 Python API
+
+You can also use `data_agent` as a modular Python library:
+
+```python
+from data_agent import resolve_location, get_current_weather, get_hourly_forecast, export_from_queries
+
+# 1. Geocode
+loc = resolve_location("Reykjavik", country_code="IS")
+
+# 2. Live snapshot
+weather = get_current_weather(loc)
+print(f"{loc.name}: {weather.temperature_2m}°C, {weather.relative_humidity_2m}% humidity")
+
+# 3. Hourly forecast
+forecast = get_hourly_forecast(loc, forecast_days=5)
+print(f"Next 24h temps: {forecast.temperatures[:24]}")
+
+# 4. Generate ML training dataset
+export_from_queries(["Tokyo", "Zurich"], output_path="training_data.csv", start_date="2023-01-01", end_date="2023-06-30")
+```
+
+---
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
-
+MIT License. See [LICENSE](LICENSE) for details.

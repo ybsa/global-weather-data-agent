@@ -5,14 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "global-weather-data-agent"
 version = "0.1.0"
-description = "Provenance-first global weather collection and dataset export."
+description = "Universal open-source global weather scraper, dynamic geocoder, and ML dataset exporter."
 requires-python = ">=3.11"
 
 [project.scripts]
-weather-agent = "weather_agent.cli:main"
-timesfm-export = "project1_data_agent.run_export:main"
 data-agent = "data_agent.cli:main"
 
 [tool.setuptools]
-packages = ["weather_agent", "project1_data_agent", "data_agent"]
-
+packages = ["data_agent"]
