@@ -9,7 +9,7 @@ from project1_data_agent.timesfm_exporter import export_timesfm_dataset
 def main():
     parser = argparse.ArgumentParser(description="Export historical weather for TimesFM training")
     parser.add_argument("--locations", default="config/locations.csv", help="Path to locations CSV")
-    parser.add_argument("--output", default="exports/nepal_timesfm_train.csv", help="Output CSV path")
+    parser.add_argument("--output", default="exports/weather_timeseries.csv", help="Output CSV path")
     parser.add_argument("--start", default="2023-01-01", help="Start date (YYYY-MM-DD)")
     parser.add_argument("--end", default="2023-12-31", help="End date (YYYY-MM-DD)")
     parser.add_argument("--limit", type=int, default=10, help="Limit number of locations to export (default 10)")

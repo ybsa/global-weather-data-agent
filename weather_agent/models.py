@@ -10,4 +10,5 @@ class Location:
     latitude: float
     longitude: float
     elevation_m: float
+    country_code: str = ""
 

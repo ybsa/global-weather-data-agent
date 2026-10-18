@@ -6,7 +6,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import sqlite3
 
-from .geocoding import resolve_location, search_local_locations
+from .geocoding import AmbiguousLocationError, resolve_location, search_local_locations
 from .models import Location
 from .providers import fetch_open_meteo
 from .storage import save_records
@@ -68,7 +68,10 @@ def get_current_weather(
     """Get current weather for any location worldwide.
     Checks SQLite cache first; fetches live and saves if missing or stale.
     """
-    loc = resolve_location(con, query)
+    try:
+        loc = resolve_location(con, query)
+    except AmbiguousLocationError as exc:
+        return {"error": str(exc)}
     if not loc:
         return {"error": f"Could not find or geocode location '{query}'."}
 
@@ -94,6 +97,7 @@ def get_current_weather(
             "name": loc.name,
             "province": loc.province,
             "district": loc.district,
+            "country_code": loc.country_code,
             "coordinates": {"latitude": loc.latitude, "longitude": loc.longitude},
             "elevation_m": loc.elevation_m,
             "condition": weather_code_to_text(cached.get("weather_code")),
@@ -126,6 +130,7 @@ def get_current_weather(
             "name": loc.name,
             "province": loc.province,
             "district": loc.district,
+            "country_code": loc.country_code,
             "coordinates": {"latitude": loc.latitude, "longitude": loc.longitude},
             "elevation_m": loc.elevation_m,
             "condition": weather_code_to_text(current_rec.get("weather_code") if current_rec else None),
@@ -151,7 +156,10 @@ def get_forecast(
     force_live: bool = False,
 ) -> dict:
     """Get hourly and daily summarized forecast for any location worldwide."""
-    loc = resolve_location(con, query)
+    try:
+        loc = resolve_location(con, query)
+    except AmbiguousLocationError as exc:
+        return {"error": str(exc)}
     if not loc:
         return {"error": f"Could not find or geocode location '{query}'."}
 
@@ -216,6 +224,7 @@ def get_forecast(
     return {
         "location": loc.name,
         "district": loc.district,
+        "country_code": loc.country_code,
         "province": loc.province,
         "elevation_m": loc.elevation_m,
         "forecast_hours_count": len(hourly_list),
@@ -282,6 +291,7 @@ def check_weather_risk(con: sqlite3.Connection, query: str) -> dict:
     return {
         "location": current.get("name"),
         "district": current.get("district"),
+        "country_code": current.get("country_code", ""),
         "province": current.get("province"),
         "elevation_m": elevation,
         "overall_risk": "HIGH" if any(w["level"] == "DANGER" for w in warnings) else ("MEDIUM" if warnings else "LOW"),

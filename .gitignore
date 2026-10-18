@@ -6,4 +6,7 @@ exports/
 logs/
 outputs/
 .env
+*.egg-info/
+dist/
+build/
 

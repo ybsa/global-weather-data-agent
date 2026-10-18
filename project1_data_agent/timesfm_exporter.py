@@ -50,6 +50,7 @@ def fetch_historical_series(
             "name": location.name,
             "district": location.district,
             "province": location.province,
+            "country_code": location.country_code,
             "elevation_m": location.elevation_m,
             "timestamp": t,
             "temperature_2m": hourly.get("temperature_2m", [])[idx] if idx < len(hourly.get("temperature_2m", [])) else None,

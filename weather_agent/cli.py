@@ -25,6 +25,7 @@ def load_locations(path):
                 float(row["latitude"]),
                 float(row["longitude"]),
                 float(row["elevation_m"]),
+                (row.get("country_code") or "").upper(),
             )
 
 
@@ -47,7 +48,7 @@ def collect(args):
 def latest(args):
     con = connect(args.database)
     rows = con.execute(
-        """SELECT l.name, w.data_kind, w.source, w.product, w.valid_at, w.received_at,
+        """SELECT l.name, l.country_code, w.data_kind, w.source, w.product, w.valid_at, w.received_at,
            w.temperature_c, w.humidity_pct, w.precipitation_mm, w.precipitation_probability_pct, w.wind_speed_kmh
            FROM weather_records w JOIN locations l USING(location_id)
            WHERE w.location_id = ? ORDER BY w.received_at DESC, w.valid_at ASC LIMIT ?""",
@@ -61,10 +62,10 @@ def coverage(args):
     con = connect(args.database)
     now = datetime.now(timezone.utc)
     rows = con.execute(
-        """SELECT l.province, COUNT(DISTINCT l.location_id) AS configured_locations,
+        """SELECT l.country_code, l.province, COUNT(DISTINCT l.location_id) AS configured_locations,
            COUNT(w.id) AS records, MAX(w.received_at) AS newest_received_at
            FROM locations l LEFT JOIN weather_records w USING(location_id)
-           GROUP BY l.province ORDER BY l.province"""
+           GROUP BY l.country_code, l.province ORDER BY l.country_code, l.province"""
     ).fetchall()
     for row in rows:
         item = dict(row)
@@ -115,12 +116,12 @@ def ask(args):
 
 def main():
     parser = argparse.ArgumentParser(description="Global Weather Data Agent — live weather and forecast collection")
-    parser.add_argument("--database", default="data/weather.sqlite3")
+    parser.add_argument("--database", default="data/weather.sqlite3", help="SQLite database path (default: data/weather.sqlite3)")
     sub = parser.add_subparsers(required=True)
 
     # Ingestion & Database commands
     c = sub.add_parser("collect", help="Batch collect configured locations into SQLite")
-    c.add_argument("--locations", default="config/locations.csv")
+    c.add_argument("--locations", default="config/locations.csv", help="CSV of locations to collect")
     c.set_defaults(func=collect)
 
     l = sub.add_parser("latest", help="Show latest records for a known location_id")
@@ -133,7 +134,7 @@ def main():
 
     # Village & Live lookup commands
     liv = sub.add_parser("live", help="Instant live or cached weather for any place worldwide")
-    liv.add_argument("location", help="Place name; include a country for ambiguous names (e.g. 'London, UK')")
+    liv.add_argument("location", help="Place name; include a country for ambiguous names (e.g. 'London, GB')")
     liv.add_argument("--force", action="store_true", help="Force live API fetch instead of cache")
     liv.set_defaults(func=live)
 

@@ -121,6 +121,7 @@ def execute_tool(con: sqlite3.Connection, tool_name: str, arguments: dict[str, A
                     "name": loc.name,
                     "district": loc.district,
                     "province": loc.province,
+                    "country_code": loc.country_code,
                     "elevation_m": loc.elevation_m,
                     "location_id": loc.location_id,
                 }

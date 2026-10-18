@@ -6,7 +6,8 @@ from pathlib import Path
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS locations (
   location_id TEXT PRIMARY KEY, name TEXT NOT NULL, province TEXT, district TEXT,
-  latitude REAL NOT NULL, longitude REAL NOT NULL, elevation_m REAL
+  latitude REAL NOT NULL, longitude REAL NOT NULL, elevation_m REAL,
+  country_code TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS weather_records (
   id INTEGER PRIMARY KEY, location_id TEXT NOT NULL REFERENCES locations(location_id),
@@ -30,10 +31,15 @@ def connect(path: str) -> sqlite3.Connection:
 
 
 def save_location(con, loc) -> None:
-    con.execute("""INSERT INTO locations VALUES (?, ?, ?, ?, ?, ?, ?)
+    country_code = getattr(loc, "country_code", "")
+    con.execute("""INSERT INTO locations
+      (location_id, name, province, district, latitude, longitude, elevation_m, country_code)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(location_id) DO UPDATE SET name=excluded.name, province=excluded.province,
       district=excluded.district, latitude=excluded.latitude, longitude=excluded.longitude,
-      elevation_m=excluded.elevation_m""", tuple(loc.__dict__.values()))
+      elevation_m=excluded.elevation_m, country_code=excluded.country_code""",
+      (loc.location_id, loc.name, loc.province, loc.district, loc.latitude,
+       loc.longitude, loc.elevation_m, country_code))
 
 
 def save_records(con, records: list[dict]) -> int:

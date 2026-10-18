@@ -11,7 +11,8 @@ requires-python = ">=3.11"
 [project.scripts]
 weather-agent = "weather_agent.cli:main"
 timesfm-export = "project1_data_agent.run_export:main"
+data-agent = "data_agent.cli:main"
 
 [tool.setuptools]
-packages = ["weather_agent", "project1_data_agent"]
+packages = ["weather_agent", "project1_data_agent", "data_agent"]
 

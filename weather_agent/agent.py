@@ -167,7 +167,7 @@ def direct_weather_fallback(con: sqlite3.Connection, query: str) -> str:
         return f"Error: {result['error']}"
 
     return (
-        f"--- Live Weather for {result['name']} ({result['district']}, {result['province']}) ---\n"
+        f"--- Live Weather for {result['name']} ({result['district']}, {result['province']}, {result.get('country_code', '')}) ---\n"
         f"Elevation: {result['elevation_m']} m\n"
         f"Condition: {result['condition']}\n"
         f"Temperature: {result['temperature_c']} °C\n"

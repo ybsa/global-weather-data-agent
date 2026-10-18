@@ -1,0 +1,6 @@
+location_id,name,province,district,latitude,longitude,elevation_m,country_code
+kathmandu,Kathmandu,Bagmati,Kathmandu,27.7172,85.3240,1400,NP
+new_york,New York,New York,New York City,40.7128,-74.0060,10,US
+london,London,England,Greater London,51.5072,-0.1276,25,GB
+tokyo,Tokyo,Tokyo,Tokyo,35.6762,139.6503,40,JP
+sydney,Sydney,New South Wales,Sydney,-33.8688,151.2093,58,AU
