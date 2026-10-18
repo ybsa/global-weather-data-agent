@@ -8,7 +8,7 @@ import json
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from .models import CurrentWeather, LocationInfo
+from .models import CurrentWeather, HourlyForecast, LocationInfo
 
 FORECAST_API_URL = "https://api.open-meteo.com/v1/forecast"
 DEFAULT_USER_AGENT = "Universal-Data-Agent/1.0"
