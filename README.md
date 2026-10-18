@@ -14,3 +14,7 @@ timesfm-export --output exports/nepal_timesfm_train.csv
 
 The SQLite database, exports, logs, and secrets are intentionally excluded from Git. Give the exported CSV to the model repository as a release asset or through object storage; do not rely on a sibling-folder path.
 
+## License
+
+MIT. See [LICENSE](LICENSE).
+
