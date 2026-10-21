@@ -1,12 +1,47 @@
-.venv/
+# Byte-compiled / optimized / test caches
 __pycache__/
 *.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments & virtualenvs
+.venv/
+venv/
+ENV/
+env/
+
+# Packaging / Distribution
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Databases & local persistent storage (NEVER publish local databases)
+*.db
+*.sqlite
+*.sqlite3
 data/*.sqlite3
+natural_data.db
+
+# Sensitive credentials & environment variables (NEVER publish API keys/secrets)
+.env
+.env.*
+!.env.example
+
+# Local exports, machine learning caches, and runtime artifacts
+datasets/
 exports/
 logs/
 outputs/
-.env
-*.egg-info/
-dist/
-build/
+*.csv
+!config/world_locations.example.csv
 
+# IDE & Editor local folders
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db

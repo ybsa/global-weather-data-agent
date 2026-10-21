@@ -4,9 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "global-weather-data-agent"
-version = "0.1.0"
-description = "Universal open-source global weather scraper, dynamic geocoder, and ML dataset exporter."
-requires-python = ">=3.11"
+version = "1.0.0"
+description = "Universal open-source global natural disaster data collector, geocoder, and ML dataset exporter (zero API keys)."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.22.0",
+    "pydantic>=2.0.0",
+]
 
 [project.scripts]
 data-agent = "data_agent.cli:main"

@@ -1,5 +1,6 @@
-"""Universal Historical Weather Scraper.
+"""Universal Historical Natural Indicators Scraper.
 Fetches continuous historical time-series back to 1940 for any location on Earth.
+Pulls atmospheric, wind, rain, pressure, and soil moisture conditions.
 Uses Open-Meteo Historical Archive API (free, zero API keys required).
 """
 from __future__ import annotations
@@ -11,20 +12,23 @@ from urllib.request import Request, urlopen
 from .models import LocationInfo
 
 ARCHIVE_API_URL = "https://archive-api.open-meteo.com/v1/archive"
-DEFAULT_USER_AGENT = "Universal-Data-Agent/1.0"
-HISTORICAL_FIELDS = "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,surface_pressure"
+DEFAULT_USER_AGENT = "Universal-Natural-Data-Agent/1.0"
+NATURAL_HISTORICAL_FIELDS = (
+    "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_gusts_10m,"
+    "surface_pressure,soil_temperature_0_to_7cm,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm"
+)
 
 
 def fetch_historical_series(
     location: LocationInfo,
     start_date: str = "2023-01-01",
     end_date: str = "2023-12-31",
-    variables: str = HISTORICAL_FIELDS,
+    variables: str = NATURAL_HISTORICAL_FIELDS,
     opener=urlopen,
 ) -> list[dict]:
     """Fetch continuous hourly historical series for any global location.
     
-    Returns clean dictionaries ready for ML dataframe / CSV conversion.
+    Returns clean dictionaries ready for ML dataframe / CSV / Parquet conversion.
     """
     params = {
         "latitude": location.latitude,
@@ -49,11 +53,15 @@ def fetch_historical_series(
     humids = hourly.get("relative_humidity_2m", [])
     precips = hourly.get("precipitation", [])
     winds = hourly.get("wind_speed_10m", [])
+    gusts = hourly.get("wind_gusts_10m", [])
     pressures = hourly.get("surface_pressure", [])
+    soil_temps = hourly.get("soil_temperature_0_to_7cm", [])
+    soil_moist1 = hourly.get("soil_moisture_0_to_7cm", [])
+    soil_moist2 = hourly.get("soil_moisture_7_to_28cm", [])
 
     for idx, t in enumerate(times):
         records.append({
-            "unique_id": location.location_id,
+            "location_id": location.location_id,
             "name": location.name,
             "country": location.country,
             "country_code": location.country_code,
@@ -67,7 +75,11 @@ def fetch_historical_series(
             "relative_humidity_2m": humids[idx] if idx < len(humids) else None,
             "precipitation_mm": precips[idx] if idx < len(precips) else 0.0,
             "wind_speed_10m": winds[idx] if idx < len(winds) else None,
+            "wind_gusts_10m": gusts[idx] if idx < len(gusts) else None,
             "surface_pressure_hpa": pressures[idx] if idx < len(pressures) else None,
+            "soil_temperature_0_to_7cm": soil_temps[idx] if idx < len(soil_temps) else None,
+            "soil_moisture_0_to_7cm": soil_moist1[idx] if idx < len(soil_moist1) else None,
+            "soil_moisture_7_to_28cm": soil_moist2[idx] if idx < len(soil_moist2) else None,
         })
 
     return records
