@@ -9,6 +9,7 @@ import json
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from .cache import chart_cache
 from .models import LocationInfo
 from .seismic import get_recent_earthquakes
 
@@ -22,16 +23,29 @@ def fetch_chart_data(
     longitude: float,
     days: int = 7,
     opener=urlopen,
+    use_cache: bool = True,
 ) -> dict:
-    """Fetch complete multi-category time-series for dynamic charting.
-    
-    Includes:
-    - Atmospheric (Pressure, Temperature, Rain, Wind, Gusts)
-    - Hydrology (Daily river discharge m3/s past + forecast)
-    - Soil Moisture (Surface 0-1cm and Deep Root 27-81cm)
-    - Seismic Activity (Recent tremors with timestamps and magnitudes)
-    """
+    """Fetch complete multi-category time-series for dynamic charting with 5-minute TTL caching."""
     safe_days = min(max(1, days), 14)
+    cache_key = (round(latitude, 3), round(longitude, 3), safe_days)
+
+    if use_cache:
+        cached = chart_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+    data = _fetch_chart_data_uncached(latitude, longitude, safe_days, opener=opener)
+    if use_cache and data:
+        chart_cache.set(cache_key, data, ttl_seconds=300.0)
+    return data
+
+
+def _fetch_chart_data_uncached(
+    latitude: float,
+    longitude: float,
+    safe_days: int,
+    opener=urlopen,
+) -> dict:
 
     # 1. Open-Meteo Hourly (Atmosphere + Soil Moisture)
     weather_params = {

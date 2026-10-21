@@ -122,6 +122,8 @@ class UniversalCollector:
         )
 
 
+from .cache import live_report_cache
+
 _default_collector = UniversalCollector()
 
 def get_current_weather(location: LocationInfo) -> CurrentWeather:
@@ -130,5 +132,22 @@ def get_current_weather(location: LocationInfo) -> CurrentWeather:
 def get_hourly_forecast(location: LocationInfo, forecast_days: int = 3) -> HourlyForecast:
     return _default_collector.fetch_hourly(location, forecast_days=forecast_days)
 
-def get_natural_live_report(location: LocationInfo, seismic_radius_km: float = 300.0) -> NaturalLiveReport:
-    return _default_collector.fetch_natural_live_report(location, seismic_radius_km=seismic_radius_km)
+def get_natural_live_report(
+    location: LocationInfo,
+    seismic_radius_km: float = 300.0,
+    use_cache: bool = True,
+) -> NaturalLiveReport:
+    """Fetch consolidated live report with 5-minute TTL caching."""
+    if not use_cache:
+        return _default_collector.fetch_natural_live_report(location, seismic_radius_km=seismic_radius_km)
+
+    # Key by location identifier (or rounded coordinates) and radius
+    cache_key = (
+        location.location_id or f"{round(location.latitude, 3)}_{round(location.longitude, 3)}",
+        round(seismic_radius_km, 1),
+    )
+    return live_report_cache.get_or_set(
+        cache_key,
+        lambda: _default_collector.fetch_natural_live_report(location, seismic_radius_km=seismic_radius_km),
+        ttl_seconds=300.0,  # 5 minutes
+    )
